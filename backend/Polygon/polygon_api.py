@@ -1,9 +1,12 @@
 import os
 from polygon import RESTClient
+from dotenv import load_dotenv
 
-polygon_key = os.getenv("POLYGON_API_KEY")
-client = RESTClient(api_key=polygon_key)
+load_dotenv()
 
+POLYGON_API_KEY = os.getenv("POLYGON_API_KEY")
+
+client = RESTClient(api_key=POLYGON_API_KEY)
 
 
 class FinancialData:
@@ -19,3 +22,16 @@ class FinancialData:
     def get_financial_data_for_date_range(self, start_date: str, end_date: str):
         return client.get_aggs(ticker=self.ticker, multiplier=1, timespan="minute", from_=start_date, to=end_date, limit=10)
     
+    def get_financial_data_for_date_range_with_limit(self, start_date: str, end_date: str, limit: int):
+        return client.get_aggs(ticker=self.ticker, multiplier=1, timespan="minute", from_=start_date, to=end_date, limit=limit)
+    
+    def get_financial_data_for_date_range_with_limit_and_offset(self, start_date: str, end_date: str, limit: int, offset: int):
+        return client.get_aggs(ticker=self.ticker, multiplier=1, timespan="minute", from_=start_date, to=end_date, limit=limit, offset=offset)
+
+
+    
+ 
+
+
+
+
