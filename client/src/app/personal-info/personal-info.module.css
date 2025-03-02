@@ -1,0 +1,264 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  position: relative;
+}
+
+.progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.05);
+  z-index: 100;
+}
+
+.progressBar {
+  height: 100%;
+  background: #000000;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logo {
+  position: fixed;
+  top: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: #000000;
+  z-index: 10;
+  letter-spacing: -1px;
+}
+
+.form {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.questionSection {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 5rem 2rem;
+  scroll-snap-align: start;
+  position: relative;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.questionSection.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.questionContent {
+  max-width: 700px;
+  width: 100%;
+  text-align: center;
+}
+
+.questionHeader {
+  margin-bottom: 3rem;
+  position: relative;
+  display: inline-block;
+}
+
+.questionNumber {
+  font-size: 1rem;
+  color: #666666;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.questionContent label {
+  display: block;
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: #000000;
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+.questionContent input {
+  width: 100%;
+  max-width: 500px;
+  padding: 1.2rem;
+  font-size: 1.6rem;
+  border: none;
+  border-bottom: 2px solid #e5e7eb;
+  background: transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  margin: 0 auto;
+  color: #000000;
+}
+
+.questionContent input:focus {
+  outline: none;
+  border-bottom-color: #000000;
+}
+
+.hint {
+  color: #666666;
+  font-size: 0.95rem;
+  margin-top: 1rem;
+  font-weight: 400;
+}
+
+.riskOptions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2.5rem;
+}
+
+.riskOption {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 24px;
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.02),
+    0 1px 3px rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+}
+
+.riskOption:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 20px rgba(0, 0, 0, 0.06),
+    0 4px 8px rgba(0, 0, 0, 0.04);
+}
+
+.riskOption.selected {
+  border-color: #000000;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.riskOption h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.8rem;
+  color: #000000;
+  font-weight: 600;
+}
+
+.riskOption p {
+  color: #666666;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.nextButton {
+  background: #000000;
+  color: white;
+  border: none;
+  padding: 1.2rem 2.8rem;
+  font-size: 1.1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 3rem;
+  font-weight: 600;
+  min-width: 180px;
+}
+
+.nextButton:hover {
+  background: #333333;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.summary {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 24px;
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.02),
+    0 1px 3px rgba(0, 0, 0, 0.03);
+  margin-bottom: 2.5rem;
+  text-align: left;
+}
+
+.summary h2 {
+  font-size: 2rem;
+  margin-bottom: 1.8rem;
+  color: #000000;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.summaryItem {
+  padding: 1.2rem 0;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 1.2rem;
+  color: #000000;
+}
+
+.summaryItem:last-child {
+  border-bottom: none;
+}
+
+.summaryItem span {
+  color: #666666;
+  margin-right: 0.8rem;
+  font-weight: 500;
+}
+
+.submitButton {
+  background: #000000;
+  color: white;
+  border: none;
+  padding: 1.2rem 2.8rem;
+  font-size: 1.1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+  min-width: 260px;
+}
+
+.submitButton:hover {
+  background: #333333;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 768px) {
+  .questionContent label {
+    font-size: 2.2rem;
+  }
+  
+  .questionContent input {
+    font-size: 1.3rem;
+    padding: 1rem;
+  }
+  
+  .riskOptions {
+    grid-template-columns: 1fr;
+  }
+  
+  .logo {
+    font-size: 2.2rem;
+  }
+  
+  .nextButton,
+  .submitButton {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    min-width: 160px;
+  }
+} 
