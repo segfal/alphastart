@@ -10,7 +10,20 @@ Alpha Start is a platform that helps you find the best stocks to invest in.
 
 ![Demo](./assets/demo.gif)
 
+
+# Table of Contents
+
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [System Design](#system-design)
+- [How the agent works](#how-the-agent-works)
+
 ## Features
+- Risk Management Feature that claude uses to manage risk
+- Stock screener that uses claude to screen stocks
+- Stock research that uses claude to research stocks
+- Stock news that uses claude to summarize news
+
 
 ## Technologies Used
 
@@ -43,3 +56,9 @@ Alpha Start is a platform that helps you find the best stocks to invest in.
 How the agent works:
 
 ![How the agent works](./assets/agent.png)
+
+
+# Features we are working on
+- Showing P/E ratio, EPS, Market Cap
+- Adding more metrics to the stock screener
+- Summarizing news with agent
