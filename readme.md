@@ -6,6 +6,10 @@
 
 Alpha Start is a platform that helps you find the best stocks to invest in.
 
+### Demo
+
+![Demo](./assets/demo.gif)
+
 ## Features
 
 ## Technologies Used
