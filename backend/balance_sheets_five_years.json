@@ -1,0 +1,1102 @@
+[
+    {
+        "other_current_liabilities": {
+            "value": 82455000000.0,
+            "unit": "USD",
+            "label": "Other Current Liabilities",
+            "order": 740
+        },
+        "other_current_assets": {
+            "value": 126329000000.0,
+            "unit": "USD",
+            "label": "Other Current Assets",
+            "order": 250
+        },
+        "other_noncurrent_assets": {
+            "value": 164776000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Assets",
+            "order": 350
+        },
+        "fixed_assets": {
+            "value": 46069000000.0,
+            "unit": "USD",
+            "label": "Fixed Assets",
+            "order": 320
+        },
+        "liabilities_and_equity": {
+            "value": 344085000000.0,
+            "unit": "USD",
+            "label": "Liabilities And Equity",
+            "order": 1900
+        },
+        "liabilities": {
+            "value": 277327000000.0,
+            "unit": "USD",
+            "label": "Liabilities",
+            "order": 600
+        },
+        "other_noncurrent_liabilities": {
+            "value": 38162000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Liabilities",
+            "order": 820
+        },
+        "current_liabilities": {
+            "value": 144365000000.0,
+            "unit": "USD",
+            "label": "Current Liabilities",
+            "order": 700
+        },
+        "equity_attributable_to_noncontrolling_interest": {
+            "value": 0,
+            "unit": "USD",
+            "label": "Equity Attributable To Noncontrolling Interest",
+            "order": 1500
+        },
+        "assets": {
+            "value": 344085000000.0,
+            "unit": "USD",
+            "label": "Assets",
+            "order": 100
+        },
+        "noncurrent_liabilities": {
+            "value": 132962000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Liabilities",
+            "order": 800
+        },
+        "inventory": {
+            "value": 6911000000.0,
+            "unit": "USD",
+            "label": "Inventory",
+            "order": 230
+        },
+        "long_term_debt": {
+            "value": 94800000000.0,
+            "unit": "USD",
+            "label": "Long-term Debt",
+            "order": 810
+        },
+        "current_assets": {
+            "value": 133240000000.0,
+            "unit": "USD",
+            "label": "Current Assets",
+            "order": 200
+        },
+        "accounts_payable": {
+            "value": 61910000000.0,
+            "unit": "USD",
+            "label": "Accounts Payable",
+            "order": 710
+        },
+        "equity_attributable_to_parent": {
+            "value": 66758000000.0,
+            "unit": "USD",
+            "label": "Equity Attributable To Parent",
+            "order": 1600
+        },
+        "noncurrent_assets": {
+            "value": 210845000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Assets",
+            "order": 300
+        },
+        "equity": {
+            "value": 66758000000.0,
+            "unit": "USD",
+            "label": "Equity",
+            "order": 1400
+        }
+    },
+    {
+        "noncurrent_liabilities": {
+            "value": 132962000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Liabilities",
+            "order": 800
+        },
+        "accounts_payable": {
+            "value": 61910000000.0,
+            "unit": "USD",
+            "label": "Accounts Payable",
+            "order": 710
+        },
+        "current_liabilities": {
+            "value": 144365000000.0,
+            "unit": "USD",
+            "label": "Current Liabilities",
+            "order": 700
+        },
+        "current_assets": {
+            "value": 133240000000.0,
+            "unit": "USD",
+            "label": "Current Assets",
+            "order": 200
+        },
+        "other_noncurrent_liabilities": {
+            "value": 38162000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Liabilities",
+            "order": 820
+        },
+        "equity": {
+            "value": 66758000000.0,
+            "unit": "USD",
+            "label": "Equity",
+            "order": 1400
+        },
+        "other_noncurrent_assets": {
+            "value": 164776000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Assets",
+            "order": 350
+        },
+        "assets": {
+            "value": 344085000000.0,
+            "unit": "USD",
+            "label": "Assets",
+            "order": 100
+        },
+        "long_term_debt": {
+            "value": 94800000000.0,
+            "unit": "USD",
+            "label": "Long-term Debt",
+            "order": 810
+        },
+        "equity_attributable_to_noncontrolling_interest": {
+            "value": 0,
+            "unit": "USD",
+            "label": "Equity Attributable To Noncontrolling Interest",
+            "order": 1500
+        },
+        "fixed_assets": {
+            "value": 46069000000.0,
+            "unit": "USD",
+            "label": "Fixed Assets",
+            "order": 320
+        },
+        "equity_attributable_to_parent": {
+            "value": 66758000000.0,
+            "unit": "USD",
+            "label": "Equity Attributable To Parent",
+            "order": 1600
+        },
+        "other_current_assets": {
+            "value": 126329000000.0,
+            "unit": "USD",
+            "label": "Other Current Assets",
+            "order": 250
+        },
+        "other_current_liabilities": {
+            "value": 82455000000.0,
+            "unit": "USD",
+            "label": "Other Current Liabilities",
+            "order": 740
+        },
+        "noncurrent_assets": {
+            "value": 210845000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Assets",
+            "order": 300
+        },
+        "inventory": {
+            "value": 6911000000.0,
+            "unit": "USD",
+            "label": "Inventory",
+            "order": 230
+        },
+        "liabilities_and_equity": {
+            "value": 344085000000.0,
+            "unit": "USD",
+            "label": "Liabilities And Equity",
+            "order": 1900
+        },
+        "liabilities": {
+            "value": 277327000000.0,
+            "unit": "USD",
+            "label": "Liabilities",
+            "order": 600
+        }
+    },
+    {
+        "liabilities_and_equity": {
+            "value": 364980000000.0,
+            "unit": "USD",
+            "label": "Liabilities And Equity",
+            "order": 1900
+        },
+        "noncurrent_liabilities": {
+            "value": 131638000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Liabilities",
+            "order": 800
+        },
+        "long_term_debt": {
+            "value": 96662000000.0,
+            "unit": "USD",
+            "label": "Long-term Debt",
+            "order": 810
+        },
+        "equity_attributable_to_noncontrolling_interest": {
+            "value": 0,
+            "unit": "USD",
+            "label": "Equity Attributable To Noncontrolling Interest",
+            "order": 1500
+        },
+        "other_current_liabilities": {
+            "value": 107432000000.0,
+            "unit": "USD",
+            "label": "Other Current Liabilities",
+            "order": 740
+        },
+        "equity": {
+            "value": 56950000000.0,
+            "unit": "USD",
+            "label": "Equity",
+            "order": 1400
+        },
+        "noncurrent_assets": {
+            "value": 211993000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Assets",
+            "order": 300
+        },
+        "other_noncurrent_assets": {
+            "value": 166313000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Assets",
+            "order": 350
+        },
+        "assets": {
+            "value": 364980000000.0,
+            "unit": "USD",
+            "label": "Assets",
+            "order": 100
+        },
+        "liabilities": {
+            "value": 308030000000.0,
+            "unit": "USD",
+            "label": "Liabilities",
+            "order": 600
+        },
+        "fixed_assets": {
+            "value": 45680000000.0,
+            "unit": "USD",
+            "label": "Fixed Assets",
+            "order": 320
+        },
+        "current_assets": {
+            "value": 152987000000.0,
+            "unit": "USD",
+            "label": "Current Assets",
+            "order": 200
+        },
+        "other_noncurrent_liabilities": {
+            "value": 34976000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Liabilities",
+            "order": 820
+        },
+        "equity_attributable_to_parent": {
+            "value": 56950000000.0,
+            "unit": "USD",
+            "label": "Equity Attributable To Parent",
+            "order": 1600
+        },
+        "other_current_assets": {
+            "value": 145701000000.0,
+            "unit": "USD",
+            "label": "Other Current Assets",
+            "order": 250
+        },
+        "current_liabilities": {
+            "value": 176392000000.0,
+            "unit": "USD",
+            "label": "Current Liabilities",
+            "order": 700
+        },
+        "inventory": {
+            "value": 7286000000.0,
+            "unit": "USD",
+            "label": "Inventory",
+            "order": 230
+        },
+        "accounts_payable": {
+            "value": 68960000000.0,
+            "unit": "USD",
+            "label": "Accounts Payable",
+            "order": 710
+        }
+    },
+    {
+        "current_assets": {
+            "value": 152987000000.0,
+            "unit": "USD",
+            "label": "Current Assets",
+            "order": 200
+        },
+        "fixed_assets": {
+            "value": 45680000000.0,
+            "unit": "USD",
+            "label": "Fixed Assets",
+            "order": 320
+        },
+        "other_current_liabilities": {
+            "value": 107432000000.0,
+            "unit": "USD",
+            "label": "Other Current Liabilities",
+            "order": 740
+        },
+        "long_term_debt": {
+            "value": 96662000000.0,
+            "unit": "USD",
+            "label": "Long-term Debt",
+            "order": 810
+        },
+        "liabilities": {
+            "value": 308030000000.0,
+            "unit": "USD",
+            "label": "Liabilities",
+            "order": 600
+        },
+        "equity_attributable_to_parent": {
+            "value": 56950000000.0,
+            "unit": "USD",
+            "label": "Equity Attributable To Parent",
+            "order": 1600
+        },
+        "equity_attributable_to_noncontrolling_interest": {
+            "value": 0,
+            "unit": "USD",
+            "label": "Equity Attributable To Noncontrolling Interest",
+            "order": 1500
+        },
+        "other_noncurrent_assets": {
+            "value": 166313000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Assets",
+            "order": 350
+        },
+        "accounts_payable": {
+            "value": 68960000000.0,
+            "unit": "USD",
+            "label": "Accounts Payable",
+            "order": 710
+        },
+        "inventory": {
+            "value": 7286000000.0,
+            "unit": "USD",
+            "label": "Inventory",
+            "order": 230
+        },
+        "other_noncurrent_liabilities": {
+            "value": 34976000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Liabilities",
+            "order": 820
+        },
+        "noncurrent_liabilities": {
+            "value": 131638000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Liabilities",
+            "order": 800
+        },
+        "equity": {
+            "value": 56950000000.0,
+            "unit": "USD",
+            "label": "Equity",
+            "order": 1400
+        },
+        "assets": {
+            "value": 364980000000.0,
+            "unit": "USD",
+            "label": "Assets",
+            "order": 100
+        },
+        "other_current_assets": {
+            "value": 145701000000.0,
+            "unit": "USD",
+            "label": "Other Current Assets",
+            "order": 250
+        },
+        "noncurrent_assets": {
+            "value": 211993000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Assets",
+            "order": 300
+        },
+        "liabilities_and_equity": {
+            "value": 364980000000.0,
+            "unit": "USD",
+            "label": "Liabilities And Equity",
+            "order": 1900
+        },
+        "current_liabilities": {
+            "value": 176392000000.0,
+            "unit": "USD",
+            "label": "Current Liabilities",
+            "order": 700
+        }
+    },
+    {
+        "liabilities": {
+            "value": 264904000000.0,
+            "unit": "USD",
+            "label": "Liabilities",
+            "order": 600
+        },
+        "other_current_liabilities": {
+            "value": 84050000000.0,
+            "unit": "USD",
+            "label": "Other Current Liabilities",
+            "order": 740
+        },
+        "inventory": {
+            "value": 6165000000.0,
+            "unit": "USD",
+            "label": "Inventory",
+            "order": 230
+        },
+        "equity": {
+            "value": 66708000000.0,
+            "unit": "USD",
+            "label": "Equity",
+            "order": 1400
+        },
+        "long_term_debt": {
+            "value": 98300000000.0,
+            "unit": "USD",
+            "label": "Long-term Debt",
+            "order": 810
+        },
+        "current_liabilities": {
+            "value": 131624000000.0,
+            "unit": "USD",
+            "label": "Current Liabilities",
+            "order": 700
+        },
+        "other_noncurrent_assets": {
+            "value": 161675000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Assets",
+            "order": 350
+        },
+        "other_current_assets": {
+            "value": 119270000000.0,
+            "unit": "USD",
+            "label": "Other Current Assets",
+            "order": 250
+        },
+        "liabilities_and_equity": {
+            "value": 331612000000.0,
+            "unit": "USD",
+            "label": "Liabilities And Equity",
+            "order": 1900
+        },
+        "noncurrent_liabilities": {
+            "value": 133280000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Liabilities",
+            "order": 800
+        },
+        "fixed_assets": {
+            "value": 44502000000.0,
+            "unit": "USD",
+            "label": "Fixed Assets",
+            "order": 320
+        },
+        "current_assets": {
+            "value": 125435000000.0,
+            "unit": "USD",
+            "label": "Current Assets",
+            "order": 200
+        },
+        "noncurrent_assets": {
+            "value": 206177000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Assets",
+            "order": 300
+        },
+        "equity_attributable_to_noncontrolling_interest": {
+            "value": 0,
+            "unit": "USD",
+            "label": "Equity Attributable To Noncontrolling Interest",
+            "order": 1500
+        },
+        "other_noncurrent_liabilities": {
+            "value": 34980000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Liabilities",
+            "order": 820
+        },
+        "assets": {
+            "value": 331612000000.0,
+            "unit": "USD",
+            "label": "Assets",
+            "order": 100
+        },
+        "equity_attributable_to_parent": {
+            "value": 66708000000.0,
+            "unit": "USD",
+            "label": "Equity Attributable To Parent",
+            "order": 1600
+        },
+        "accounts_payable": {
+            "value": 47574000000.0,
+            "unit": "USD",
+            "label": "Accounts Payable",
+            "order": 710
+        }
+    },
+    {
+        "equity_attributable_to_noncontrolling_interest": {
+            "value": 0,
+            "unit": "USD",
+            "label": "Equity Attributable To Noncontrolling Interest",
+            "order": 1500
+        },
+        "equity": {
+            "value": 74194000000.0,
+            "unit": "USD",
+            "label": "Equity",
+            "order": 1400
+        },
+        "long_term_debt": {
+            "value": 102600000000.0,
+            "unit": "USD",
+            "label": "Long-term Debt",
+            "order": 810
+        },
+        "inventory": {
+            "value": 6232000000.0,
+            "unit": "USD",
+            "label": "Inventory",
+            "order": 230
+        },
+        "fixed_assets": {
+            "value": 43546000000.0,
+            "unit": "USD",
+            "label": "Fixed Assets",
+            "order": 320
+        },
+        "other_noncurrent_liabilities": {
+            "value": 36795000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Liabilities",
+            "order": 820
+        },
+        "liabilities": {
+            "value": 263217000000.0,
+            "unit": "USD",
+            "label": "Liabilities",
+            "order": 600
+        },
+        "current_assets": {
+            "value": 128416000000.0,
+            "unit": "USD",
+            "label": "Current Assets",
+            "order": 200
+        },
+        "assets": {
+            "value": 337411000000.0,
+            "unit": "USD",
+            "label": "Assets",
+            "order": 100
+        },
+        "noncurrent_assets": {
+            "value": 208995000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Assets",
+            "order": 300
+        },
+        "other_current_assets": {
+            "value": 122184000000.0,
+            "unit": "USD",
+            "label": "Other Current Assets",
+            "order": 250
+        },
+        "other_noncurrent_assets": {
+            "value": 165449000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Assets",
+            "order": 350
+        },
+        "current_liabilities": {
+            "value": 123822000000.0,
+            "unit": "USD",
+            "label": "Current Liabilities",
+            "order": 700
+        },
+        "accounts_payable": {
+            "value": 45753000000.0,
+            "unit": "USD",
+            "label": "Accounts Payable",
+            "order": 710
+        },
+        "other_current_liabilities": {
+            "value": 78069000000.0,
+            "unit": "USD",
+            "label": "Other Current Liabilities",
+            "order": 740
+        },
+        "equity_attributable_to_parent": {
+            "value": 74194000000.0,
+            "unit": "USD",
+            "label": "Equity Attributable To Parent",
+            "order": 1600
+        },
+        "liabilities_and_equity": {
+            "value": 337411000000.0,
+            "unit": "USD",
+            "label": "Liabilities And Equity",
+            "order": 1900
+        },
+        "noncurrent_liabilities": {
+            "value": 139395000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Liabilities",
+            "order": 800
+        }
+    },
+    {
+        "other_current_assets": {
+            "value": 137181000000.0,
+            "unit": "USD",
+            "label": "Other Current Assets",
+            "order": 250
+        },
+        "liabilities_and_equity": {
+            "value": 353514000000.0,
+            "unit": "USD",
+            "label": "Liabilities And Equity",
+            "order": 1900
+        },
+        "equity_attributable_to_parent": {
+            "value": 74100000000.0,
+            "unit": "USD",
+            "label": "Equity Attributable To Parent",
+            "order": 1600
+        },
+        "assets": {
+            "value": 353514000000.0,
+            "unit": "USD",
+            "label": "Assets",
+            "order": 100
+        },
+        "liabilities": {
+            "value": 279414000000.0,
+            "unit": "USD",
+            "label": "Liabilities",
+            "order": 600
+        },
+        "accounts_payable": {
+            "value": 58146000000.0,
+            "unit": "USD",
+            "label": "Accounts Payable",
+            "order": 710
+        },
+        "noncurrent_liabilities": {
+            "value": 145441000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Liabilities",
+            "order": 800
+        },
+        "equity": {
+            "value": 74100000000.0,
+            "unit": "USD",
+            "label": "Equity",
+            "order": 1400
+        },
+        "other_noncurrent_liabilities": {
+            "value": 39441000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Liabilities",
+            "order": 820
+        },
+        "inventory": {
+            "value": 6511000000.0,
+            "unit": "USD",
+            "label": "Inventory",
+            "order": 230
+        },
+        "current_liabilities": {
+            "value": 133973000000.0,
+            "unit": "USD",
+            "label": "Current Liabilities",
+            "order": 700
+        },
+        "noncurrent_assets": {
+            "value": 209822000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Assets",
+            "order": 300
+        },
+        "long_term_debt": {
+            "value": 106000000000.0,
+            "unit": "USD",
+            "label": "Long-term Debt",
+            "order": 810
+        },
+        "other_noncurrent_assets": {
+            "value": 166156000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Assets",
+            "order": 350
+        },
+        "current_assets": {
+            "value": 143692000000.0,
+            "unit": "USD",
+            "label": "Current Assets",
+            "order": 200
+        },
+        "fixed_assets": {
+            "value": 43666000000.0,
+            "unit": "USD",
+            "label": "Fixed Assets",
+            "order": 320
+        },
+        "other_current_liabilities": {
+            "value": 75827000000.0,
+            "unit": "USD",
+            "label": "Other Current Liabilities",
+            "order": 740
+        },
+        "equity_attributable_to_noncontrolling_interest": {
+            "value": 0,
+            "unit": "USD",
+            "label": "Equity Attributable To Noncontrolling Interest",
+            "order": 1500
+        }
+    },
+    {
+        "fixed_assets": {
+            "value": 43715000000.0,
+            "unit": "USD",
+            "label": "Fixed Assets",
+            "order": 320
+        },
+        "other_current_liabilities": {
+            "value": 82697000000.0,
+            "unit": "USD",
+            "label": "Other Current Liabilities",
+            "order": 740
+        },
+        "equity_attributable_to_parent": {
+            "value": 62146000000.0,
+            "unit": "USD",
+            "label": "Equity Attributable To Parent",
+            "order": 1600
+        },
+        "other_current_assets": {
+            "value": 137235000000.0,
+            "unit": "USD",
+            "label": "Other Current Assets",
+            "order": 250
+        },
+        "equity_attributable_to_noncontrolling_interest": {
+            "value": 0,
+            "unit": "USD",
+            "label": "Equity Attributable To Noncontrolling Interest",
+            "order": 1500
+        },
+        "equity": {
+            "value": 62146000000.0,
+            "unit": "USD",
+            "label": "Equity",
+            "order": 1400
+        },
+        "noncurrent_assets": {
+            "value": 209017000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Assets",
+            "order": 300
+        },
+        "accounts_payable": {
+            "value": 62611000000.0,
+            "unit": "USD",
+            "label": "Accounts Payable",
+            "order": 710
+        },
+        "other_noncurrent_assets": {
+            "value": 165302000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Assets",
+            "order": 350
+        },
+        "inventory": {
+            "value": 6331000000.0,
+            "unit": "USD",
+            "label": "Inventory",
+            "order": 230
+        },
+        "current_liabilities": {
+            "value": 145308000000.0,
+            "unit": "USD",
+            "label": "Current Liabilities",
+            "order": 700
+        },
+        "other_noncurrent_liabilities": {
+            "value": 40026000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Liabilities",
+            "order": 820
+        },
+        "long_term_debt": {
+            "value": 105103000000.0,
+            "unit": "USD",
+            "label": "Long-term Debt",
+            "order": 810
+        },
+        "noncurrent_liabilities": {
+            "value": 145129000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Liabilities",
+            "order": 800
+        },
+        "assets": {
+            "value": 352583000000.0,
+            "unit": "USD",
+            "label": "Assets",
+            "order": 100
+        },
+        "current_assets": {
+            "value": 143566000000.0,
+            "unit": "USD",
+            "label": "Current Assets",
+            "order": 200
+        },
+        "liabilities": {
+            "value": 290437000000.0,
+            "unit": "USD",
+            "label": "Liabilities",
+            "order": 600
+        },
+        "liabilities_and_equity": {
+            "value": 352583000000.0,
+            "unit": "USD",
+            "label": "Liabilities And Equity",
+            "order": 1900
+        }
+    },
+    {
+        "long_term_debt": {
+            "value": 105103000000.0,
+            "unit": "USD",
+            "label": "Long-term Debt",
+            "order": 810
+        },
+        "noncurrent_assets": {
+            "value": 209017000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Assets",
+            "order": 300
+        },
+        "other_current_liabilities": {
+            "value": 82697000000.0,
+            "unit": "USD",
+            "label": "Other Current Liabilities",
+            "order": 740
+        },
+        "assets": {
+            "value": 352583000000.0,
+            "unit": "USD",
+            "label": "Assets",
+            "order": 100
+        },
+        "other_noncurrent_liabilities": {
+            "value": 40026000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Liabilities",
+            "order": 820
+        },
+        "noncurrent_liabilities": {
+            "value": 145129000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Liabilities",
+            "order": 800
+        },
+        "fixed_assets": {
+            "value": 43715000000.0,
+            "unit": "USD",
+            "label": "Fixed Assets",
+            "order": 320
+        },
+        "other_current_assets": {
+            "value": 137235000000.0,
+            "unit": "USD",
+            "label": "Other Current Assets",
+            "order": 250
+        },
+        "inventory": {
+            "value": 6331000000.0,
+            "unit": "USD",
+            "label": "Inventory",
+            "order": 230
+        },
+        "liabilities_and_equity": {
+            "value": 352583000000.0,
+            "unit": "USD",
+            "label": "Liabilities And Equity",
+            "order": 1900
+        },
+        "current_liabilities": {
+            "value": 145308000000.0,
+            "unit": "USD",
+            "label": "Current Liabilities",
+            "order": 700
+        },
+        "accounts_payable": {
+            "value": 62611000000.0,
+            "unit": "USD",
+            "label": "Accounts Payable",
+            "order": 710
+        },
+        "equity_attributable_to_noncontrolling_interest": {
+            "value": 0,
+            "unit": "USD",
+            "label": "Equity Attributable To Noncontrolling Interest",
+            "order": 1500
+        },
+        "equity_attributable_to_parent": {
+            "value": 62146000000.0,
+            "unit": "USD",
+            "label": "Equity Attributable To Parent",
+            "order": 1600
+        },
+        "other_noncurrent_assets": {
+            "value": 165302000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Assets",
+            "order": 350
+        },
+        "current_assets": {
+            "value": 143566000000.0,
+            "unit": "USD",
+            "label": "Current Assets",
+            "order": 200
+        },
+        "liabilities": {
+            "value": 290437000000.0,
+            "unit": "USD",
+            "label": "Liabilities",
+            "order": 600
+        },
+        "equity": {
+            "value": 62146000000.0,
+            "unit": "USD",
+            "label": "Equity",
+            "order": 1400
+        }
+    },
+    {
+        "inventory": {
+            "value": 7351000000.0,
+            "unit": "USD",
+            "label": "Inventory",
+            "order": 230
+        },
+        "long_term_debt": {
+            "value": 105300000000.0,
+            "unit": "USD",
+            "label": "Long-term Debt",
+            "order": 810
+        },
+        "liabilities_and_equity": {
+            "value": 335038000000.0,
+            "unit": "USD",
+            "label": "Liabilities And Equity",
+            "order": 1900
+        },
+        "other_current_assets": {
+            "value": 115308000000.0,
+            "unit": "USD",
+            "label": "Other Current Assets",
+            "order": 250
+        },
+        "equity_attributable_to_parent": {
+            "value": 60274000000.0,
+            "unit": "USD",
+            "label": "Equity Attributable To Parent",
+            "order": 1600
+        },
+        "other_noncurrent_assets": {
+            "value": 168829000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Assets",
+            "order": 350
+        },
+        "other_current_liabilities": {
+            "value": 78264000000.0,
+            "unit": "USD",
+            "label": "Other Current Liabilities",
+            "order": 740
+        },
+        "equity_attributable_to_noncontrolling_interest": {
+            "value": 0,
+            "unit": "USD",
+            "label": "Equity Attributable To Noncontrolling Interest",
+            "order": 1500
+        },
+        "current_liabilities": {
+            "value": 124963000000.0,
+            "unit": "USD",
+            "label": "Current Liabilities",
+            "order": 700
+        },
+        "accounts_payable": {
+            "value": 46699000000.0,
+            "unit": "USD",
+            "label": "Accounts Payable",
+            "order": 710
+        },
+        "noncurrent_liabilities": {
+            "value": 149801000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Liabilities",
+            "order": 800
+        },
+        "noncurrent_assets": {
+            "value": 212379000000.0,
+            "unit": "USD",
+            "label": "Noncurrent Assets",
+            "order": 300
+        },
+        "other_noncurrent_liabilities": {
+            "value": 44501000000.0,
+            "unit": "USD",
+            "label": "Other Non-current Liabilities",
+            "order": 820
+        },
+        "equity": {
+            "value": 60274000000.0,
+            "unit": "USD",
+            "label": "Equity",
+            "order": 1400
+        },
+        "fixed_assets": {
+            "value": 43550000000.0,
+            "unit": "USD",
+            "label": "Fixed Assets",
+            "order": 320
+        },
+        "assets": {
+            "value": 335038000000.0,
+            "unit": "USD",
+            "label": "Assets",
+            "order": 100
+        },
+        "current_assets": {
+            "value": 122659000000.0,
+            "unit": "USD",
+            "label": "Current Assets",
+            "order": 200
+        },
+        "liabilities": {
+            "value": 274764000000.0,
+            "unit": "USD",
+            "label": "Liabilities",
+            "order": 600
+        }
+    }
+]
