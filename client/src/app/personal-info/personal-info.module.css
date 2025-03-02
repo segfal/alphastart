@@ -117,9 +117,35 @@
   border-bottom-color: #000000;
 }
 
+.input {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.125rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background-color: white;
+  transition: all 0.2s ease-in-out;
+  margin-top: 1rem;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  transform: scale(1.02);
+}
+
+.input::placeholder {
+  color: #9ca3af;
+}
+
 .inputError {
-  border-bottom-color: #ff3b30 !important;
-  background-color: rgba(255, 59, 48, 0.05);
+  border-color: #ef4444;
+}
+
+.inputError:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
 .errorMessage {

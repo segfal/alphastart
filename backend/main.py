@@ -13,9 +13,14 @@ from polygon import RESTClient
 from dotenv import load_dotenv
 import threading
 import functools
+import re
+from fuzzywuzzy import fuzz, process
+import sqlite3
+from datetime import datetime, timedelta
+import json
 
 from stock_news import get_news_from_motley_fool
-from get_pe_and_cash_flow import get_financial_data_for_ticker
+from get_pe_and_cash_flow import get_financial_data_for_ticker, PolygonFinancials
 
 # Load environment variables and initialize clients
 load_dotenv()
@@ -28,6 +33,53 @@ anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, methods=["GET", "OPTIONS"])
+
+# SQLite database setup
+DB_PATH = os.path.join(os.path.dirname(__file__), 'stock_cache.db')
+
+def get_db_connection():
+    """Create a connection to the SQLite database"""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row  # This enables column access by name
+    return conn
+
+def init_db():
+    """Initialize the database with required tables"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Create stock search cache table
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS stock_search_cache (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        query TEXT NOT NULL,
+        results TEXT NOT NULL,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+    
+    # Create stock info cache table
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS stock_info_cache (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ticker TEXT NOT NULL,
+        data_type TEXT NOT NULL,
+        data TEXT NOT NULL,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(ticker, data_type)
+    )
+    ''')
+    
+    conn.commit()
+    conn.close()
+    print("Database initialized successfully")
+
+# Initialize database on startup
+init_db()
+
+# Cache for stock search results (in-memory, will be replaced with SQLite)
+stock_search_cache = {}
+STOCK_SEARCH_CACHE_TTL = 86400  # 24 hours in seconds
 
 class RateLimiter:
     """Simple rate limiter to prevent hitting API limits."""
@@ -60,28 +112,31 @@ class RateLimiter:
 class StockAnalyzer:
     """
     Handles AI-powered analysis of stock data using Claude API.
+    Optimized to minimize API calls by combining prompts and using longer cache durations.
     """
     def __init__(self, ai_client: anthropic.Anthropic):
         self.ai_client = ai_client
-        self.rate_limiter = RateLimiter(max_calls=4, time_period=60)  # 4 calls per minute to be safe
+        self.rate_limiter = RateLimiter(max_calls=3, time_period=60)  # More conservative rate limit
         self.cache = {}  # Simple cache to store responses
+        self.cache_ttl = 24 * 3600  # Increase cache TTL to 24 hours for most queries
     
     def _cache_key(self, method: str, params: tuple) -> str:
         """Generate a cache key from method name and parameters."""
         return f"{method}:{':'.join(str(p) for p in params)}"
     
-    def _cached_api_call(self, method_name: str, prompt: str, cache_ttl: int = 3600) -> str:
+    def _cached_api_call(self, method_name: str, prompt: str, cache_ttl: int = None) -> str:
         """Make an API call with caching and rate limiting.
         
         Args:
             method_name: Name of the method making the call (for cache key)
             prompt: The prompt to send to the AI
-            cache_ttl: Cache time-to-live in seconds (default: 1 hour)
+            cache_ttl: Cache time-to-live in seconds (defaults to self.cache_ttl)
             
         Returns:
             The AI's response text
         """
         cache_key = self._cache_key(method_name, (prompt,))
+        cache_ttl = cache_ttl or self.cache_ttl
         
         # Check if we have a cached response
         if cache_key in self.cache:
@@ -105,220 +160,78 @@ class StockAnalyzer:
         
         return result
 
-    def _get_ai_response(self, prompt: str) -> str:
-        """
-        Get a response from the AI model with rate limiting.
+    def get_company_info(self, ticker: str) -> dict:
+        """Get all basic company information in a single API call."""
+        prompt = f"""For the company with ticker {ticker}, provide the following information in a JSON format:
+        1. Company name
+        2. Brief description (1-2 sentences)
+        3. Industry
         
-        Args:
-            prompt: The prompt to send to the AI
-            
-        Returns:
-            The AI's response text
-        """
-        # Use the calling method's name for the cache key
-        import inspect
-        caller_frame = inspect.currentframe().f_back
-        caller_method = caller_frame.f_code.co_name
+        Format the response as a valid JSON object with keys: name, description, industry.
+        Only return the JSON object, no other text."""
         
-        return self._cached_api_call(caller_method, prompt)
+        try:
+            response = self._cached_api_call("get_company_info", prompt)
+            return json.loads(response)
+        except:
+            return {
+                "name": f"Company {ticker}",
+                "description": "Information not available",
+                "industry": "Unknown"
+            }
 
-    def get_ticker_symbol(self, company: str) -> str:
-        """Get the ticker symbol for a company name."""
-        prompt = f"What is the ticker symbol of {company} and only return the ticker symbol"
-        return self._cached_api_call("get_ticker_symbol", prompt)
-
-    def get_company_name(self, ticker: str) -> str:
-        """Get the company name for a ticker symbol."""
-        prompt = f"What is the name of {ticker} and only return the company name"
-        return self._cached_api_call("get_company_name", prompt)
-
-    def get_company_description(self, ticker: str) -> str:
-        """Get a description of the company."""
-        prompt = f"What is the description of {ticker} and only return the company description"
-        return self._cached_api_call("get_company_description", prompt)
-
-    def get_company_industry(self, ticker: str) -> str:
-        """Get the industry classification for a company."""
-        prompt = f"What is the industry of {ticker} and only return the company industry"
-        return self._cached_api_call("get_company_industry", prompt)
-
-    def get_morning_star_rating(self, ticker: str) -> str:
-        """Get the Morningstar rating (1-5) for a company."""
-        prompt = f"What is the Morningstar rating for {ticker}? Please only return the numerical rating (1-5) with no additional text or explanation."
-        return self._cached_api_call("get_morning_star_rating", prompt)
-
-    def get_moody_rating(self, ticker: str) -> str:
-        """Get the Moody's credit rating for a company."""
-        prompt = f"What is the Moody's credit rating for {ticker}? Please only return the numerical value or letter grade (e.g. Aaa, Aa1, A2, etc) with no additional text or explanation."
-        return self._cached_api_call("get_moody_rating", prompt)
-
-    def analyze_risk(self, ticker: str) -> str:
-        """
-        Analyze the risk level of a stock based on ratings.
-        Returns risk assessment and investment recommendation.
-        """
-        # Combine multiple queries into a single API call to reduce rate limit usage
-        combined_prompt = f"""Please provide the following information about {ticker} in a structured format:
-        
-        1. Moody's credit rating (e.g., Aaa, Aa1, A2, etc.)
-        2. Morningstar rating (numerical value 1-5)
-        3. Based on these ratings, assess the risk level (high, medium, or low)
-        4. If the risk is not high or medium, would you recommend investing in {ticker}? (yes/no with brief explanation)
-        
-        Format your response as:
-        Moody Rating: [rating]
-        Morningstar Rating: [rating]
-        Risk Level: [high/medium/low]
-        Investment Recommendation: [yes/no with brief explanation]
-        """
-        
-        response = self._cached_api_call("analyze_risk", combined_prompt)
-        
-        # Parse the response to extract just the investment recommendation
-        lines = response.strip().split('\n')
-        for line in lines:
-            if line.startswith("Investment Recommendation:"):
-                return line.replace("Investment Recommendation:", "").strip()
-        
-        # If we couldn't parse the response, return the whole thing
-        return response
-
-    def analyze_financials(self, ticker: str) -> str:
-        """
-        Perform comprehensive financial analysis of a stock.
-        Returns investment recommendation based on financial metrics.
-        """
-        financial_data = get_financial_data_for_ticker(ticker, self)
-        
-        # Extract and format financial metrics
-        metrics = self._format_financial_metrics(financial_data)
-        
-        analysis_prompt = self._create_financial_analysis_prompt(ticker, metrics)
-        return self._cached_api_call("analyze_financials", analysis_prompt)
-
-    def _format_financial_metrics(self, financial_data: Dict[str, Any]) -> Dict[str, str]:
-        """Format financial metrics for analysis."""
-        # Initialize with None values to handle missing data
-        metrics = {
-            'pe_ratio': None,
-            'industry_pe_ratio': None,
-            'pe_relative_to_industry': None,
-            'debt_to_equity': None,
-            'dividend_growth': None,
-            'operating_cash_flow': None,
-            'total_assets': None,
-            'total_liabilities': None
-        }
-        
-        # Safely extract values from financial_data
+    def analyze_risk_and_financials(self, ticker: str, risk_level: str = 'moderate', financial_data: dict = None) -> dict:
+        """Combined analysis of risk and financials in a single API call."""
+        metrics = ""
         if financial_data:
-            metrics['pe_ratio'] = financial_data.get('pe_ratio')
-            metrics['industry_pe_ratio'] = financial_data.get('industry_pe_ratio')
-            metrics['pe_relative_to_industry'] = financial_data.get('pe_relative_to_industry')
-            
-            # Handle nested dictionaries safely
-            balance_sheet = financial_data.get('balance_sheet') or {}
-            if isinstance(balance_sheet, dict):
-                metrics['debt_to_equity'] = balance_sheet.get('debt_to_equity')
-                metrics['total_assets'] = balance_sheet.get('total_assets')
-                metrics['total_liabilities'] = balance_sheet.get('total_liabilities')
-            
-            # Handle dividend data safely
-            dividend_data = financial_data.get('dividend_data') or {}
-            if isinstance(dividend_data, dict):
-                metrics['dividend_growth'] = dividend_data.get('dividend_growth')
-            
-            # Handle cash flow data safely
-            cash_flow = financial_data.get('cash_flow') or {}
-            if isinstance(cash_flow, dict):
-                metrics['operating_cash_flow'] = cash_flow.get('operating_cash_flow')
+            metrics = f"""
+            Financial Metrics:
+            - P/E Ratio: {financial_data.get('pe_ratio', 'N/A')}
+            - Industry Average P/E: {financial_data.get('industry_pe_ratio', 'N/A')}
+            - Debt-to-Equity: {financial_data.get('balance_sheet', {}).get('debt_to_equity', 'N/A')}
+            - Total Assets: {financial_data.get('balance_sheet', {}).get('total_assets', 'N/A')}
+            - Total Liabilities: {financial_data.get('balance_sheet', {}).get('total_liabilities', 'N/A')}"""
 
-        # Format currency values
-        for key in ['operating_cash_flow', 'total_assets', 'total_liabilities']:
-            if metrics[key]:
-                metrics[f"{key}_display"] = f"${metrics[key]:,.2f}"
-            else:
-                metrics[f"{key}_display"] = "Not available"
-                
-        # Format P/E comparison
-        if metrics['pe_ratio'] and metrics['industry_pe_ratio'] and metrics['pe_relative_to_industry']:
-            pe_diff_percent = (metrics['pe_relative_to_industry'] - 1) * 100
-            if pe_diff_percent > 0:
-                metrics['pe_comparison'] = f"{pe_diff_percent:.1f}% higher than industry average"
-            else:
-                metrics['pe_comparison'] = f"{abs(pe_diff_percent):.1f}% lower than industry average"
-        else:
-            metrics['pe_comparison'] = "Not available"
-
-        return metrics
-
-    def _create_financial_analysis_prompt(self, ticker: str, metrics: Dict[str, Any]) -> str:
-        """Create the prompt for financial analysis."""
-        return f"""Analyze the financial health of {ticker} based on these financial metrics:
-        - P/E Ratio: {metrics['pe_ratio']}
-        - Industry Average P/E Ratio: {metrics['industry_pe_ratio']}
-        - P/E Ratio Comparison: {metrics['pe_comparison']}
-        - Debt-to-Equity Ratio: {metrics['debt_to_equity']}
-        - Dividend Growth Over 5 Years: {'Increasing' if metrics['dividend_growth'] else 'Not consistently increasing'}
-        - Operating Cash Flow: {metrics['operating_cash_flow_display']}
-        - Total Assets: {metrics['total_assets_display']}
-        - Total Liabilities: {metrics['total_liabilities_display']}
+        prompt = f"""Analyze {ticker} stock and provide a risk assessment and investment recommendation.
         
-        Based on these numbers, assess the financial health of {ticker}. Is this a financially healthy company? Why or why not?
-        What are the strengths and weaknesses shown in these financial metrics?
-        Would you recommend this stock as an investment from a financial stability perspective? My Risk tolerance is low, so I only want to invest in companies that are financially stable.
-        I am a long term investor, so I am looking for companies that are financially stable and have a history of paying dividends.
+        {metrics}
         
-        In your analysis, please specifically address how the P/E ratio compares to the industry average and what that indicates about the stock's valuation.
+        The user has a {risk_level} risk tolerance level.
         
-        Please only return yes or no and explain why you think so.
-        """
+        Provide your response in JSON format with these keys:
+        - risk_level: "low", "medium", or "high"
+        - risk_factors: List of key risk factors (max 3)
+        - recommendation: Clear investment recommendation
+        - analysis: Brief analysis explanation
+        
+        Only return the JSON object, no other text."""
+        
+        try:
+            response = self._cached_api_call("analyze_risk_and_financials", prompt)
+            return json.loads(response)
+        except:
+            return {
+                "risk_level": "medium",
+                "risk_factors": ["Unable to analyze risks"],
+                "recommendation": "Please consult financial advisor",
+                "analysis": "Analysis not available"
+            }
 
     def get_similar_companies(self, ticker: str, count: int = 5) -> List[str]:
-        """
-        Get a list of similar companies in the same industry as the given ticker.
-        Uses Claude to identify peer companies rather than hardcoding them.
+        """Get similar companies with longer cache duration."""
+        prompt = f"""List {count} major publicly traded competitors of {ticker}.
+        Return only a comma-separated list of ticker symbols.
+        No explanation needed."""
         
-        Args:
-            ticker: The ticker symbol to find peers for
-            count: The number of peer companies to return
-            
-        Returns:
-            List of ticker symbols for similar companies
-        """
-        # Use cached company name and industry to reduce API calls
-        company_name = self.get_company_name(ticker)
-        industry = self.get_company_industry(ticker)
-        
-        prompt = f"""I need to find {count} similar publicly traded companies that are competitors or peers to {company_name} ({ticker}) in the {industry} industry.
-        
-        Please provide only the ticker symbols of these companies in a comma-separated list.
-        Do not include {ticker} itself in the list.
-        Only include major publicly traded companies with valid ticker symbols.
-        Do not include any explanation or additional text, just the comma-separated list of tickers.
-        """
-        
-        response = self._cached_api_call("get_similar_companies", prompt)
+        response = self._cached_api_call("get_similar_companies", prompt, cache_ttl=7 * 24 * 3600)  # 7 days cache
         
         # Clean and parse the response
         peers = []
         if response:
-            # Remove any explanatory text and just keep the tickers
-            cleaned_response = response.strip()
-            
-            # Split by commas and clean each ticker
-            raw_tickers = cleaned_response.split(',')
-            for raw_ticker in raw_tickers:
-                ticker_clean = raw_ticker.strip().upper()
-                # Basic validation - tickers are typically 1-5 characters
-                if 1 <= len(ticker_clean) <= 5 and ticker_clean != ticker:
-                    peers.append(ticker_clean)
-                    
-                # Stop once we have enough peers
-                if len(peers) >= count:
-                    break
+            raw_tickers = response.strip().split(',')
+            peers = [t.strip().upper() for t in raw_tickers if 1 <= len(t.strip()) <= 5 and t.strip().upper() != ticker]
         
-        return peers[:count]  # Ensure we don't return more than requested
+        return peers[:count]
 
 # API Routes
 analyzer = StockAnalyzer(anthropic_client)
@@ -327,18 +240,32 @@ analyzer = StockAnalyzer(anthropic_client)
 def get_ticker_data(ticker: str):
     """Get basic information about a stock."""
     try:
-        data = {
-            'ticker': ticker,
-            'company_name': analyzer.get_company_name(ticker),
-            'description': analyzer.get_company_description(ticker),
-            'industry': analyzer.get_company_industry(ticker)
-        }
+        # Get risk_level from query parameters, default to 'moderate'
+        risk_level = request.args.get('risk_level', 'moderate')
         
-        # Only include risk analysis if explicitly requested to save API calls
-        if request.args.get('include_risk') == 'true':
-            data['risk'] = analyzer.analyze_risk(ticker)
+        # Check cache first
+        cached_data = get_cached_stock_info(ticker, 'basic_info')
+        
+        if cached_data:
+            # If we have cached data but need to update the risk analysis due to different risk level
+            if cached_data.get('risk_level') != risk_level:
+                cached_data['risk'] = analyzer.analyze_risk_and_financials(ticker, risk_level)['risk_level']
+                cached_data['risk_level'] = risk_level
+                # Update cache with new risk analysis
+                cache_stock_info(ticker, 'basic_info', cached_data)
+                return create_cache_response(cached_data, from_cache=False)
             
-        return jsonify(data)
+            return create_cache_response(cached_data, from_cache=True)
+        
+        # If not in cache, fetch the data
+        data = analyzer.get_company_info(ticker)
+        data['risk'] = analyzer.analyze_risk_and_financials(ticker)['risk_level']
+        data['risk_level'] = risk_level
+        
+        # Cache the results
+        cache_stock_info(ticker, 'basic_info', data)
+            
+        return create_cache_response(data, from_cache=False)
     except Exception as e:
         return jsonify({'error': str(e), 'message': 'Error retrieving ticker data'}), 500
 
@@ -346,35 +273,255 @@ def get_ticker_data(ticker: str):
 def get_financials(ticker: str):
     """Get comprehensive financial data for a stock."""
     try:
-        data = get_financial_data_for_ticker(ticker.upper(), analyzer)
-        return jsonify(data)
+        # Check cache first
+ 
+        # If not in cache, fetch the data
+        # get only pe ratio and balance sheet
+        pe_ratio = get_pe_ratio(ticker)
+        time.sleep(3)
+        balance_sheet = get_balance_sheet(ticker)
+        data = {
+            'pe_ratio': pe_ratio,
+            'balance_sheet': balance_sheet
+        }
+        
+        
+        # Cache the results
+        cache_stock_info(ticker, 'financials', data)
+        
+        return create_cache_response(data, from_cache=False)
     except Exception as e:
         return jsonify({'error': str(e), 'message': 'Error retrieving financial data'}), 500
 
 @app.route('/api/news/<ticker>', methods=['GET'])
 def get_news(ticker: str):
-    """Get recent news articles about a stock."""
+    """Get latest news for a stock."""
     try:
-        news = get_news_from_motley_fool(ticker)
-        return jsonify(news)
+        # Check cache first
+        cached_data = get_cached_stock_info(ticker, 'news')
+        
+        if cached_data:
+            return create_cache_response(cached_data, from_cache=True)
+        
+        # If not in cache, fetch the data
+        news = analyzer.get_news(ticker.upper())
+        result = {'ticker': ticker, 'news': news}
+        
+        # Cache the results
+        cache_stock_info(ticker, 'news', result)
+        
+        return create_cache_response(result, from_cache=False)
     except Exception as e:
-        return jsonify({'error': str(e), 'message': 'Error retrieving news data'}), 500
+        return jsonify({'error': str(e), 'message': 'Error retrieving news'}), 500
 
-@app.route('/api/financial-analysis/<ticker>', methods=['GET'])
-def get_financial_analysis(ticker: str):
-    """Get AI-powered financial analysis of a stock."""
+@app.route('/api/pe_ratio/<ticker>', methods=['GET'])
+def get_pe_ratio(ticker: str):
+    """Get only the P/E ratio for a specific stock without industry comparison."""
     try:
-        analysis = analyzer.analyze_financials(ticker.upper())
-        return jsonify({'ticker': ticker, 'analysis': analysis})
+        # Check cache first
+        cached_data = get_cached_stock_info(ticker, 'pe_ratio')
+        
+        if cached_data:
+            return create_cache_response(cached_data, from_cache=True)
+        
+        # Import the PolygonFinancials class directly
+        from get_pe_and_cash_flow import PolygonFinancials
+        
+        # Create an instance without passing the analyzer to avoid industry lookups
+        financials = PolygonFinancials(ticker.upper())
+        
+        # Get only the P/E ratio using the direct API call method
+        pe_ratio = financials._get_pe_from_ticker_details()
+        
+        # If that fails, try the snapshot method
+        if pe_ratio is None:
+            pe_ratio = financials._get_pe_from_snapshot()
+        
+        # Create a simple response object
+        data = {
+            'ticker': ticker.upper(),
+            'pe_ratio': pe_ratio
+        }
+        
+        # Cache the results
+        cache_stock_info(ticker, 'pe_ratio', data)
+        
+        return create_cache_response(data, from_cache=False)
     except Exception as e:
-        return jsonify({'error': str(e), 'message': 'Error performing financial analysis'}), 500
+        return jsonify({'error': str(e), 'message': 'Error retrieving P/E ratio'}), 500
+
+@app.route('/api/balance_sheet/<ticker>', methods=['GET'])
+def get_balance_sheet(ticker: str):
+    """Get only the balance sheet data for a specific stock."""
+    try:
+        # Check cache first
+        cached_data = get_cached_stock_info(ticker, 'balance_sheet')
+        
+        if cached_data:
+            return create_cache_response(cached_data, from_cache=True)
+        
+        # Import the PolygonFinancials class directly
+        from get_pe_and_cash_flow import PolygonFinancials
+        
+        # Create an instance without passing the analyzer to avoid industry lookups
+        financials = PolygonFinancials(ticker.upper())
+        
+        # Get only the balance sheet data
+        balance_sheet = financials.format_balance_sheet(output_format='dict')
+        
+        if balance_sheet:
+            # Create a simple response object
+            data = {
+                'ticker': ticker.upper(),
+                'balance_sheet': balance_sheet
+            }
+            
+            # Cache the results
+            cache_stock_info(ticker, 'balance_sheet', data)
+            
+            return create_cache_response(data, from_cache=False)
+        else:
+            return jsonify({'error': 'No balance sheet data available', 'message': 'Could not retrieve balance sheet data'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e), 'message': 'Error retrieving balance sheet data'}), 500
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Simple health check endpoint that doesn't use Anthropic API."""
     return jsonify({'status': 'ok', 'message': 'Service is running'})
 
+@app.route('/api/search/<query>', methods=['GET'])
+def search_stocks(query):
+    """
+    Search for stocks by ticker or company name with fuzzy matching.
+    Results are cached in SQLite database to minimize API calls.
+    
+    Args:
+        query: The search query string
+        
+    Returns:
+        JSON response with matching stocks
+    """
+    # Check SQLite cache first
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Look for cached results that are less than 24 hours old
+    cache_expiry = datetime.now() - timedelta(seconds=STOCK_SEARCH_CACHE_TTL)
+    cursor.execute(
+        "SELECT results FROM stock_search_cache WHERE query = ? AND timestamp > ?", 
+        (query.lower(), cache_expiry)
+    )
+    
+    cached_result = cursor.fetchone()
+    
+    if cached_result:
+        print(f"Using cached search results for '{query}'")
+        conn.close()
+        return create_cache_response(json.loads(cached_result['results']), from_cache=True)
+    
+    try:
+        # Call Polygon API to search for stocks
+        results = polygon_client.list_tickers(
+            search=query,
+            market="stocks",
+            active=True,
+            limit=20,
+            sort="ticker"
+        )
+        
+        # Process results and add fuzzy matching scores
+        stocks = []
+        for ticker in results:
+            # Calculate fuzzy match score
+            ticker_score = fuzz.partial_ratio(query.lower(), ticker.ticker.lower())
+            name_score = fuzz.partial_ratio(query.lower(), ticker.name.lower() if ticker.name else "")
+            
+            # Use the higher of the two scores
+            match_score = max(ticker_score, name_score)
+            
+            stocks.append({
+                "ticker": ticker.ticker,
+                "name": ticker.name,
+                "type": ticker.type,
+                "market": ticker.market,
+                "match_score": match_score
+            })
+        
+        # Sort by match score (highest first)
+        stocks.sort(key=lambda x: x["match_score"], reverse=True)
+        
+        # Cache the results in SQLite
+        cursor.execute(
+            "INSERT INTO stock_search_cache (query, results) VALUES (?, ?)",
+            (query.lower(), json.dumps(stocks))
+        )
+        conn.commit()
+        
+        conn.close()
+        return create_cache_response(stocks, from_cache=False)
+    
+    except Exception as e:
+        conn.close()
+        print(f"Error searching stocks: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# Helper function to cache stock info
+def cache_stock_info(ticker, data_type, data):
+    """Store stock information in the SQLite cache"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        import json
+        # Use REPLACE to update existing entries or insert new ones
+        cursor.execute(
+            "REPLACE INTO stock_info_cache (ticker, data_type, data) VALUES (?, ?, ?)",
+            (ticker.upper(), data_type, json.dumps(data))
+        )
+        
+        conn.commit()
+        conn.close()
+        print(f"Cached {data_type} data for {ticker}")
+    except Exception as e:
+        print(f"Error caching stock info: {str(e)}")
+
+# Helper function to get cached stock info
+def get_cached_stock_info(ticker, data_type, max_age_seconds=86400):
+    """Retrieve stock information from the SQLite cache if available and not expired"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cache_expiry = datetime.now() - timedelta(seconds=max_age_seconds)
+        cursor.execute(
+            "SELECT data FROM stock_info_cache WHERE ticker = ? AND data_type = ? AND timestamp > ?", 
+            (ticker.upper(), data_type, cache_expiry)
+        )
+        
+        result = cursor.fetchone()
+        conn.close()
+        
+        if result:
+            import json
+            print(f"Using cached {data_type} data for {ticker}")
+            return json.loads(result['data'])
+        
+        return None
+    except Exception as e:
+        print(f"Error retrieving cached stock info: {str(e)}")
+        return None
+
+# Helper function to create a response with cache headers
+def create_cache_response(data, from_cache=False):
+    """Create a Flask response with appropriate cache headers"""
+    response = jsonify(data)
+    if from_cache:
+        response.headers['X-From-Cache'] = 'true'
+    return response
+
 if __name__ == "__main__":
     # Skip the initial test to avoid unnecessary API calls
     # Run Flask app
-    app.run(debug=True, port=5001)
+    port = int(os.environ.get("PORT", 5001))
+    app.run(host="0.0.0.0", port=port)

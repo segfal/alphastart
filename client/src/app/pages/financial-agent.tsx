@@ -1,6 +1,9 @@
 "use client";
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './financial-agent.module.css';
+import { searchStocks, getPeRatio, getBalanceSheet, getFinancialData } from '../services/api';
+import { motion } from 'framer-motion';
+import Header from '../components/Header';
 
 // Expanded stock data with more details
 const STOCK_DATA = [
@@ -34,12 +37,6 @@ const ANALYSIS_OPTIONS = [
     label: 'Latest News & Updates',
     endpoint: '/api/news',
     description: 'Recent news articles from trusted financial sources'
-  },
-  { 
-    value: 'ai-analysis', 
-    label: 'AI-Powered Financial Analysis',
-    endpoint: '/api/financial-analysis',
-    description: 'In-depth AI analysis of financial health and prospects'
   }
 ];
 
@@ -87,14 +84,61 @@ const FinancialAgentPage: React.FC = () => {
   const [apiError, setApiError] = useState<string | null>(null);
   const [streamingResponse, setStreamingResponse] = useState<string[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [searchResults, setSearchResults] = useState<Array<{
+    ticker: string;
+    name: string;
+    type: string;
+    market?: string;
+    match_score?: number;
+  }>>([]);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [userRiskTolerance, setUserRiskTolerance] = useState<string>('moderate');
+  const [isFromCache, setIsFromCache] = useState<boolean>(false);
 
-  const filteredStocks = searchTerm
-    ? STOCK_DATA.filter(
-        stock =>
-          stock.ticker.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          stock.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : STOCK_DATA;
+  // Retrieve user's risk tolerance from localStorage on component mount
+  useEffect(() => {
+    const storedRiskTolerance = typeof window !== 'undefined' 
+      ? localStorage.getItem('userRiskTolerance') 
+      : null;
+    
+    if (storedRiskTolerance) {
+      setUserRiskTolerance(storedRiskTolerance);
+      console.log('Retrieved risk tolerance:', storedRiskTolerance);
+    }
+  }, []);
+
+  // Use the static STOCK_DATA for initial trending stocks
+  const trendingStocks = STOCK_DATA.filter(stock => 
+    ['NVDA', 'TSLA', 'AMD', 'PLTR'].includes(stock.ticker)
+  );
+
+  // Debounce search to avoid too many API calls
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchTerm.trim().length > 0) {
+        setIsSearchLoading(true);
+        try {
+          const results = await searchStocks(searchTerm);
+          setSearchResults(results);
+        } catch (error) {
+          console.error('Error searching stocks:', error);
+          // Fallback to static data if API fails
+          const filteredStocks = STOCK_DATA.filter(
+            stock =>
+              stock.ticker.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              stock.name.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+          setSearchResults(filteredStocks);
+        } finally {
+          setIsSearchLoading(false);
+        }
+      } else {
+        setSearchResults([]);
+      }
+    }, 300); // 300ms delay
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
 
   const handleStockSelect = (stock: { ticker: string; name: string; type: string }) => {
       setSelectedStock(stock);
@@ -134,23 +178,58 @@ const FinancialAgentPage: React.FC = () => {
     if (selectedStock && selectedAnalysis) {
       setIsLoading(true);
       setApiError(null);
+      setIsFromCache(false);
       
       try {
-        const endpoint = ANALYSIS_OPTIONS.find(opt => opt.value === selectedAnalysis)?.endpoint;
-        const url = `http://localhost:5001${endpoint}/${selectedStock.ticker}`;
-        console.log('Making request to:', url);
-        console.log('Analysis type:', selectedAnalysis);
-        console.log('Selected stock:', selectedStock);
+        let data;
         
-        const response = await fetch(url);
-        console.log('Response status:', response.status);
-        
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => null);
-          throw new Error(errorData?.error || `Failed to fetch data: ${response.statusText}`);
+        if (selectedAnalysis === 'financials') {
+          // For financial analysis, use the getFinancialData function
+          console.log('Fetching financial data for', selectedStock.ticker);
+          
+          try {
+            const financialData = await getFinancialData(selectedStock.ticker);
+            console.log('Financial data:', financialData);
+            
+            // Use the data returned from getFinancialData
+            data = {
+              ticker: selectedStock.ticker,
+              pe_ratio: financialData.pe_ratio.data.pe_ratio,
+              balance_sheet: financialData.balance_sheet.data.balance_sheet
+            };
+            
+            // Set the fromCache status
+            setIsFromCache(financialData.fromCache);
+          } catch (error) {
+            console.error('Error fetching financial data:', error);
+            throw error;
+          }
+        } else {
+          // For other analysis types, use the existing endpoints
+          const endpoint = ANALYSIS_OPTIONS.find(opt => opt.value === selectedAnalysis)?.endpoint;
+          // Add risk_level parameter to the URL
+          const url = `http://localhost:5001${endpoint}/${selectedStock.ticker}?risk_level=${userRiskTolerance}`;
+          console.log('Making request to:', url);
+          console.log('Analysis type:', selectedAnalysis);
+          console.log('Selected stock:', selectedStock);
+          console.log('User risk tolerance:', userRiskTolerance);
+          
+          const response = await fetch(url);
+          console.log('Response status:', response.status);
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.error || `Failed to fetch data: ${response.statusText}`);
+          }
+          
+          // Check if the response is from cache
+          const fromCache = response.headers.get('X-From-Cache') === 'true';
+          setIsFromCache(fromCache);
+          console.log('Response from cache:', fromCache);
+          
+          data = await response.json();
         }
         
-        const data = await response.json();
         console.log('Raw API Response:', data);
         setResponse(data);
       } catch (error: any) {
@@ -160,6 +239,11 @@ const FinancialAgentPage: React.FC = () => {
         setIsLoading(false);
       }
     }
+  };
+
+  const formatRatio = (ratio: number | undefined | null): string => {
+    if (ratio === undefined || ratio === null) return 'N/A';
+    return ratio.toFixed(2);
   };
 
   const renderResponse = () => {
@@ -173,6 +257,20 @@ const FinancialAgentPage: React.FC = () => {
 
     switch (selectedAnalysis) {
       case 'basic':
+        // Extract the risk analysis text
+        const riskText = response.risk || '';
+        
+        // Process the risk analysis text to remove markdown formatting
+        const processRiskText = (text: string) => {
+          // Remove markdown heading (#)
+          let processed = text.replace(/^#\s+(.+)$/m, '$1');
+          
+          // Replace bold markdown (**text**) with styled spans
+          processed = processed.replace(/\*\*([^*]+)\*\*/g, '<span class="highlight">$1</span>');
+          
+          return processed;
+        };
+
         return (
           <div className={styles.responseCard}>
             <h2 className={styles.responseTitle}>{response.company_name}</h2>
@@ -189,7 +287,7 @@ const FinancialAgentPage: React.FC = () => {
 
             <div className={styles.responseSection}>
               <h4>Risk Analysis</h4>
-              <p>{response.risk}</p>
+              <p dangerouslySetInnerHTML={{ __html: processRiskText(riskText) }}></p>
             </div>
           </div>
         );
@@ -208,14 +306,13 @@ const FinancialAgentPage: React.FC = () => {
           );
         }
         
-        const formatNumber = (num: number) => {
+        const formatNumber = (num: number | null | undefined) => {
+          if (num === null || num === undefined) return 'N/A';
           if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
           if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
           return `$${num.toFixed(2)}`;
         };
 
-        const formatRatio = (ratio: number) => ratio.toFixed(2);
-        
         console.log('Balance sheet data:', response.balance_sheet);
         console.log('PE ratio:', response.pe_ratio);
         
@@ -225,55 +322,57 @@ const FinancialAgentPage: React.FC = () => {
             
             <div className={styles.responseSection}>
               <h4>Balance Sheet Metrics</h4>
-              <div className={styles.metricsGrid}>
-                <div className={styles.metric}>
-                  <span className={styles.metricLabel}>Total Assets</span>
-                  <span className={styles.metricValue}>{formatNumber(response.balance_sheet.total_assets)}</span>
-                </div>
-                <div className={styles.metric}>
-                  <span className={styles.metricLabel}>Total Equity</span>
-                  <span className={styles.metricValue}>{formatNumber(response.balance_sheet.total_equity)}</span>
-                </div>
-                <div className={styles.metric}>
-                  <span className={styles.metricLabel}>Total Liabilities</span>
-                  <span className={styles.metricValue}>{formatNumber(response.balance_sheet.total_liabilities)}</span>
-                </div>
-                <div className={styles.metric}>
-                  <span className={styles.metricLabel}>Debt Ratio</span>
-                  <span className={styles.metricValue}>{formatRatio(response.balance_sheet.debt_ratio)}</span>
-                </div>
-                <div className={styles.metric}>
-                  <span className={styles.metricLabel}>Debt to Equity</span>
-                  <span className={styles.metricValue}>{formatRatio(response.balance_sheet.debt_to_equity)}</span>
-                </div>
-              </div>
-              <div className={styles.periodInfo}>
-                <span>Period: {response.balance_sheet.period}</span>
-                <span>End Date: {response.balance_sheet.end_date}</span>
-              </div>
+              {response.balance_sheet ? (
+                <>
+                  <div className={styles.metricsGrid}>
+                    <div className={styles.metric}>
+                      <span className={styles.metricLabel}>Total Assets</span>
+                      <span className={styles.metricValue}>{formatNumber(response.balance_sheet.total_assets)}</span>
+                    </div>
+                    <div className={styles.metric}>
+                      <span className={styles.metricLabel}>Total Equity</span>
+                      <span className={styles.metricValue}>{formatNumber(response.balance_sheet.total_equity)}</span>
+                    </div>
+                    <div className={styles.metric}>
+                      <span className={styles.metricLabel}>Total Liabilities</span>
+                      <span className={styles.metricValue}>{formatNumber(response.balance_sheet.total_liabilities)}</span>
+                    </div>
+                    <div className={styles.metric}>
+                      <span className={styles.metricLabel}>Debt Ratio</span>
+                      <span className={styles.metricValue}>{formatRatio(response.balance_sheet.debt_ratio)}</span>
+                    </div>
+                    <div className={styles.metric}>
+                      <span className={styles.metricLabel}>Debt to Equity</span>
+                      <span className={styles.metricValue}>{formatRatio(response.balance_sheet.debt_to_equity)}</span>
+                    </div>
+                  </div>
+                  <div className={styles.periodInfo}>
+                    <span>Period: {response.balance_sheet.period || 'N/A'}</span>
+                    <span>End Date: {response.balance_sheet.end_date || 'N/A'}</span>
+                  </div>
+                </>
+              ) : (
+                <p>No balance sheet data available</p>
+              )}
             </div>
 
             <div className={styles.responseSection}>
               <h4>Valuation Metrics</h4>
-              <div className={styles.metricsGrid}>
-                <div className={styles.metric}>
-                  <span className={styles.metricLabel}>P/E Ratio</span>
-                  <span className={styles.metricValue}>{formatRatio(response.pe_ratio)}</span>
+              {response.pe_ratio ? (
+                <div className={styles.metricsGrid}>
+                  <div className={styles.metric}>
+                    <span className={styles.metricLabel}>P/E Ratio</span>
+                    <span className={styles.metricValue}>{formatRatio(response.pe_ratio)}</span>
+                  </div>
                 </div>
-                <div className={styles.metric}>
-                  <span className={styles.metricLabel}>Industry P/E</span>
-                  <span className={styles.metricValue}>{formatRatio(response.industry_pe_ratio)}</span>
-                </div>
-                <div className={styles.metric}>
-                  <span className={styles.metricLabel}>P/E vs Industry</span>
-                  <span className={styles.metricValue}>{formatRatio(response.pe_relative_to_industry)}</span>
-                </div>
-              </div>
+              ) : (
+                <p>No valuation metrics available</p>
+              )}
             </div>
 
             <div className={styles.responseSection}>
               <h4>Dividend Information</h4>
-              <p>{response.dividend_data.message}</p>
+              <p>{response.dividend_data?.message || 'No dividend information available'}</p>
             </div>
           </div>
         );
@@ -326,15 +425,94 @@ const FinancialAgentPage: React.FC = () => {
     }
   };
 
+  // Loading animation variants
+  const loadingContainerVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.5,
+        when: "beforeChildren",
+        staggerChildren: 0.2
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      y: -20,
+      transition: { duration: 0.3 }
+    }
+  };
+
+  const loadingTextVariants = {
+    initial: { opacity: 0, y: 10 },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.5 }
+    }
+  };
+
+  const loadingBarVariants = {
+    initial: { width: "0%" },
+    animate: { 
+      width: "100%",
+      transition: { 
+        duration: 2.5, 
+        ease: "easeInOut",
+        repeat: Infinity
+      }
+    }
+  };
+
+  const loadingIconVariants = {
+    initial: { scale: 0.8, opacity: 0 },
+    animate: { 
+      scale: 1, 
+      opacity: 1,
+      transition: {
+        duration: 0.5
+      }
+    },
+    pulse: {
+      scale: [1, 1.1, 1],
+      opacity: [1, 0.8, 1],
+      transition: {
+        duration: 1.5,
+        repeat: Infinity,
+        repeatType: "reverse" as const
+      }
+    }
+  };
+
+  const loadingStepsVariants = {
+    initial: { opacity: 0, x: -10 },
+    animate: (custom: number) => ({
+      opacity: 1,
+      x: 0,
+      transition: {
+        delay: custom * 0.8,
+        duration: 0.5
+      }
+    })
+  };
+
+  // Loading steps that will appear sequentially
+  const loadingSteps = [
+    "Crunching stock info...",
+    "Analyzing market trends...",
+    "Evaluating financial metrics...",
+    "Comparing industry benchmarks...",
+    "Generating insights..."
+  ];
+
   return (
     <div className={styles.container}>
       <div className={styles.chatWrapper}>
-        <h1 className={styles.searchTitle}>Search for a stock to start your analysis</h1>
-        
-        <p className={styles.searchDescription}>
-          Accurate information on 100,000+ stocks and funds, including all the companies in the
-          S&P500 index in real time. See stock prices, news, financials, forecasts, charts and more.
-        </p>
+        <Header 
+          title="Search for a stock to start your analysis"
+          subtitle="Accurate information on 100,000+ stocks and funds, including all the companies in the S&P500 index in real time. See stock prices, news, financials, forecasts, charts and more."
+        />
 
         <div className={styles.searchSection} ref={searchRef}>
           <div className={styles.searchContainer}>
@@ -365,37 +543,49 @@ const FinancialAgentPage: React.FC = () => {
             
             {isSearchOpen && (
               <div className={styles.searchResults}>
-                {filteredStocks.map((stock) => (
-                  <div
-                    key={stock.ticker}
-                    className={styles.searchResult}
-                    onClick={() => handleStockSelect(stock)}
-                  >
-                    <div className={styles.stockInfo}>
-                      <span className={styles.ticker}>{stock.ticker}</span>
-                      <span className={styles.companyName}>{stock.name}</span>
-                    </div>
-                    <span className={styles.stockType}>{stock.type}</span>
+                {isSearchLoading ? (
+                  <div className={styles.searchLoading}>
+                    <div className={styles.searchSpinner}></div>
+                    <span>Searching...</span>
                   </div>
-                ))}
-                <div className={styles.trendingSection}>
-                  <div className={styles.trendingHeader}>Trending</div>
-                  <div className={styles.trendingStocks}>
-                    {['NVDA', 'TSLA', 'AMD', 'PLTR'].map((ticker) => {
-                      const stock = STOCK_DATA.find(s => s.ticker === ticker);
-                      if (!stock) return null;
-                      return (
+                ) : (
+                  <>
+                    {searchResults.length > 0 ? (
+                      searchResults.map((stock) => (
                         <div
                           key={stock.ticker}
-                          className={styles.trendingStock}
+                          className={styles.searchResult}
                           onClick={() => handleStockSelect(stock)}
                         >
-                          {stock.ticker}
+                          <div className={styles.stockInfo}>
+                            <span className={styles.ticker}>{stock.ticker}</span>
+                            <span className={styles.companyName}>{stock.name}</span>
+                          </div>
+                          <span className={styles.stockType}>{stock.type}</span>
                         </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                      ))
+                    ) : searchTerm.trim().length > 0 ? (
+                      <div className={styles.noResults}>
+                        No stocks found matching "{searchTerm}"
+                      </div>
+                    ) : null}
+                    
+                    <div className={styles.trendingSection}>
+                      <div className={styles.trendingHeader}>Trending</div>
+                      <div className={styles.trendingStocks}>
+                        {trendingStocks.map((stock) => (
+                          <div
+                            key={stock.ticker}
+                            className={styles.trendingStock}
+                            onClick={() => handleStockSelect(stock)}
+                          >
+                            {stock.ticker}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -439,10 +629,84 @@ const FinancialAgentPage: React.FC = () => {
         </div>
 
         {isLoading && (
-          <div className={styles.loadingContainer}>
-            <div className={styles.loadingSpinner}></div>
-            <p>Analyzing {selectedStock?.ticker}...</p>
-          </div>
+          <motion.div 
+            className={styles.loadingContainer}
+            variants={loadingContainerVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
+            <motion.div 
+              className={styles.loadingIcon}
+              variants={loadingIconVariants}
+              animate={["animate", "pulse"]}
+            >
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <motion.path 
+                  d="M12 5V3M12 21v-2M5 12H3m18 0h-2m-2.5-5.5L15 8M9 15l-1.5 1.5M18.5 18.5L17 17M7 17l-1.5 1.5M16.5 7.5L15 9" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ 
+                    pathLength: 1, 
+                    opacity: 1,
+                    transition: { 
+                      duration: 1.5,
+                      repeat: Infinity,
+                      repeatType: "loop",
+                      ease: "easeInOut"
+                    }
+                  }}
+                />
+              </svg>
+            </motion.div>
+            
+            <motion.h3 
+              className={styles.loadingTitle}
+              variants={loadingTextVariants}
+            >
+              Analyzing {selectedStock?.ticker}
+            </motion.h3>
+            
+            <motion.div 
+              className={styles.loadingBarContainer}
+              variants={loadingTextVariants}
+            >
+              <motion.div 
+                className={styles.loadingBar}
+                variants={loadingBarVariants}
+              />
+            </motion.div>
+            
+            <div className={styles.loadingSteps}>
+              {loadingSteps.map((step, index) => (
+                <motion.div 
+                  key={index}
+                  className={styles.loadingStep}
+                  custom={index}
+                  variants={loadingStepsVariants}
+                  initial="initial"
+                  animate="animate"
+                >
+                  <motion.div 
+                    className={styles.loadingStepDot}
+                    animate={{
+                      scale: [1, 1.2, 1],
+                      opacity: [0.7, 1, 0.7],
+                      transition: {
+                        duration: 1.5,
+                        repeat: Infinity,
+                        repeatType: "reverse" as const,
+                        delay: index * 0.2
+                      }
+                    }}
+                  />
+                  <span>{step}</span>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
         )}
 
         {apiError && (
@@ -453,6 +717,15 @@ const FinancialAgentPage: React.FC = () => {
 
         {response && !isLoading && (
           <div className={styles.responseContainer}>
+            {isFromCache && (
+              <div className={styles.cacheIndicator}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 8V12L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M3.05493 11.0549C2.67439 11.4354 2.67439 12.0686 3.05493 12.4491L11.0549 20.4491C11.4354 20.8296 12.0686 20.8296 12.4491 20.4491L20.4491 12.4491C20.8296 12.0686 20.8296 11.4354 20.4491 11.0549L12.4491 3.05493C12.0686 2.67439 11.4354 2.67439 11.0549 3.05493L3.05493 11.0549Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span>Cached result</span>
+              </div>
+            )}
             {renderResponse()}
           </div>
         )}

@@ -60,12 +60,3 @@ To ensure optimal performance and stay within API rate limits:
 3. Use the optional `include_risk_analysis` parameter in API routes to avoid unnecessary API calls
 4. Monitor the rate limiter statistics during development to ensure compliance
 
-## Future Improvements
-
-Potential future optimizations include:
-
-1. Implementing a persistent cache (e.g., Redis) for sharing cache between instances
-2. Adding more sophisticated cache invalidation strategies
-3. Implementing batch processing for multiple tickers
-4. Adding adaptive rate limiting based on API response headers
-5. Implementing circuit breakers to handle API outages gracefully 

@@ -54,6 +54,13 @@ const PersonalInfoPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Store the user's risk tolerance in localStorage
+    if (formData.riskTolerance) {
+      localStorage.setItem('userRiskTolerance', formData.riskTolerance);
+      console.log('Saved risk tolerance:', formData.riskTolerance);
+    }
+    
     router.push('/financial-agent');
   };
 
@@ -234,7 +241,7 @@ const PersonalInfoPage: React.FC = () => {
               id="name"
               value={formData.name}
               onChange={(e) => {
-                setFormData({...formData, name: e.target.value});
+                setFormData(prev => ({...prev, name: e.target.value}));
                 if (e.target.value.trim()) {
                   setErrors(prev => ({ ...prev, name: false }));
                 }
@@ -243,9 +250,7 @@ const PersonalInfoPage: React.FC = () => {
               required
               placeholder="Type your name..."
               autoFocus
-              whileFocus={{ scale: 1.02 }}
-              transition={{ duration: 0.2 }}
-              className={errors.name ? `${styles.inputError}` : ''}
+              className={`${styles.input} ${errors.name ? styles.inputError : ''}`}
             />
             {errors.name && (
               <motion.p 
@@ -292,7 +297,7 @@ const PersonalInfoPage: React.FC = () => {
               max="120"
               value={formData.age}
               onChange={(e) => {
-                setFormData({...formData, age: e.target.value});
+                setFormData(prev => ({...prev, age: e.target.value}));
                 if (e.target.value && parseInt(e.target.value) >= 12) {
                   setErrors(prev => ({ ...prev, age: false }));
                 }
@@ -300,9 +305,7 @@ const PersonalInfoPage: React.FC = () => {
               onKeyPress={(e) => handleKeyPress(e, 'age', 2)}
               required
               placeholder="Enter your age..."
-              whileFocus={{ scale: 1.02 }}
-              transition={{ duration: 0.2 }}
-              className={errors.age ? `${styles.inputError}` : ''}
+              className={`${styles.input} ${errors.age ? styles.inputError : ''}`}
             />
             {errors.age && (
               <motion.p 
