@@ -13,10 +13,10 @@ const FinancialAgentPage: React.FC = () => {
   return (
     <div className={styles.container}>
       <div className={styles.chatWrapper}>
-        <div className={styles.logo}>FF</div>
+        <div className={styles.logo}>AlphaStart</div>
         
         <div className={styles.welcomeMessage}>
-          Welcome to the Fin financial agent. Let us know what kind of public equities you're looking for
+          Welcome to AlphaStart. Let us know what kind of public equities you're looking for
         </div>
 
         <form onSubmit={handleSubmit} className={styles.inputForm}>

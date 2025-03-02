@@ -74,7 +74,7 @@ const PersonalInfoPage: React.FC = () => {
         />
       </div>
       
-      <div className={styles.logo}>FF</div>
+      <div className={styles.logo}>AlphaStart</div>
       
       <form onSubmit={handleSubmit} className={styles.form}>
         <div ref={sectionRefs[0]} className={styles.questionSection}>

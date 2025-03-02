@@ -19,7 +19,7 @@ const Login: React.FC = () => {
   return (
     <div className={styles.container}>
       <div className={styles.formWrapper}>
-        <div className={styles.logo}>FF</div>
+        <div className={styles.logo}>AlphaStart</div>
         
         <form onSubmit={handleSubmit}>
           <div className={styles.inputGroup}>
