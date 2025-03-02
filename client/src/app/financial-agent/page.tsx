@@ -1,8 +1,9 @@
 "use client";
 import React, { useState } from 'react';
 import styles from '../pages/financial-agent.module.css';
+import FinancialAgentPage from '../pages/financial-agent';
 
-const FinancialAgentPage: React.FC = () => {
+const FinancialAgentSite: React.FC = () => {
   const [query, setQuery] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -14,23 +15,10 @@ const FinancialAgentPage: React.FC = () => {
     <div className={styles.container}>
       <div className={styles.chatWrapper}>
         <div className={styles.logo}>AlphaStart</div>
-        
-        <div className={styles.welcomeMessage}>
-          Welcome to AlphaStart. Let us know what kind of public equities you're looking for
-        </div>
-
-        <form onSubmit={handleSubmit} className={styles.inputForm}>
-          <textarea
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className={styles.queryInput}
-            placeholder="Type your investment preferences..."
-            rows={8}
-          />
-        </form>
+        <FinancialAgentPage />
       </div>
     </div>
   );
 };
 
-export default FinancialAgentPage; 
+export default FinancialAgentSite; 

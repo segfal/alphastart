@@ -120,7 +120,7 @@ const PersonalInfoPage: React.FC = () => {
               required
               placeholder="Enter your age..."
             />
-            <p className={styles.hint}>Must be at least 12 years old</p>
+            <p className={styles.hint}>Must be at least 18 years old. If younger, you may continue with the help of a parent or guardian.</p>
           </div>
           <button 
             type="button" 
