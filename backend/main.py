@@ -24,7 +24,7 @@ anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}}, methods=["GET", "OPTIONS"])
 
 class StockAnalyzer:
     """
