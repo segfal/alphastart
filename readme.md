@@ -30,4 +30,9 @@ Alpha Start is a platform that helps you find the best stocks to invest in.
   ![Illustrator](https://img.shields.io/badge/-Illustrator-FF9A00?style=for-the-badge&logo=adobe-illustrator&logoColor=white)
 </div>
 
-</div>
+
+## System Design
+
+![System Design](./assets/system-design.png)
+
+
