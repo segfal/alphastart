@@ -33,6 +33,6 @@ Alpha Start is a platform that helps you find the best stocks to invest in.
 
 ## System Design
 
-![System Design](./assets/system-design.png)
+![System Design](./assets/sysdesign.png)
 
 
