@@ -40,3 +40,6 @@ Alpha Start is a platform that helps you find the best stocks to invest in.
 ![System Design](./assets/sysdesign.png)
 
 
+How the agent works:
+
+![How the agent works](./assets/agent.png)
