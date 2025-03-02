@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from flask import jsonify
 import importlib.util
 import sys
+import time
 
 # Load environment variables
 load_dotenv()
@@ -26,13 +27,26 @@ class PolygonFinancials:
     def get_current_price(self):
         """Get the latest closing price for the ticker."""
         try:
+            # Check if we have a cached price
+            if self.analyzer and hasattr(self.analyzer, 'cache'):
+                cache_key = f"price_{self.ticker}"
+                if cache_key in self.analyzer.cache:
+                    cached_time, cached_price = self.analyzer.cache[cache_key]
+                    # Use cached price if it's less than 1 hour old
+                    if time.time() - cached_time < 3600:  # 1 hour in seconds
+                        return cached_price
+            
             # Approach 1: Use previous day close data
             url = f"https://api.polygon.io/v2/aggs/ticker/{self.ticker}/prev?apiKey={self.api_key}"
             response = requests.get(url)
             data = response.json()
             
             if 'results' in data and data['results']:
-                return data['results'][0]['c']
+                price = data['results'][0]['c']
+                # Cache the price if possible
+                if self.analyzer and hasattr(self.analyzer, 'cache'):
+                    self.analyzer.cache[f"price_{self.ticker}"] = (time.time(), price)
+                return price
                 
             # Approach 2: Try getting the latest daily close
             today = datetime.now()
@@ -42,7 +56,11 @@ class PolygonFinancials:
             data = response.json()
             
             if 'close' in data:
-                return data['close']
+                price = data['close']
+                # Cache the price if possible
+                if self.analyzer and hasattr(self.analyzer, 'cache'):
+                    self.analyzer.cache[f"price_{self.ticker}"] = (time.time(), price)
+                return price
                 
             # Approach 3: Try getting the latest quote
             url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/{self.ticker}?apiKey={self.api_key}"
@@ -50,10 +68,18 @@ class PolygonFinancials:
             data = response.json()
             
             if 'ticker' in data and 'lastQuote' in data['ticker'] and 'p' in data['ticker']['lastQuote']:
-                return data['ticker']['lastQuote']['p']
+                price = data['ticker']['lastQuote']['p']
+                # Cache the price if possible
+                if self.analyzer and hasattr(self.analyzer, 'cache'):
+                    self.analyzer.cache[f"price_{self.ticker}"] = (time.time(), price)
+                return price
                 
             if 'ticker' in data and 'lastTrade' in data['ticker'] and 'p' in data['ticker']['lastTrade']:
-                return data['ticker']['lastTrade']['p']
+                price = data['ticker']['lastTrade']['p']
+                # Cache the price if possible
+                if self.analyzer and hasattr(self.analyzer, 'cache'):
+                    self.analyzer.cache[f"price_{self.ticker}"] = (time.time(), price)
+                return price
                 
             # Approach 4: Try getting the latest daily bar
             url = f"https://api.polygon.io/v2/aggs/ticker/{self.ticker}/range/1/day/2023-01-01/{today.strftime('%Y-%m-%d')}?limit=1&apiKey={self.api_key}"
@@ -61,18 +87,32 @@ class PolygonFinancials:
             data = response.json()
             
             if 'results' in data and data['results']:
-                return data['results'][-1]['c']
+                price = data['results'][-1]['c']
+                # Cache the price if possible
+                if self.analyzer and hasattr(self.analyzer, 'cache'):
+                    self.analyzer.cache[f"price_{self.ticker}"] = (time.time(), price)
+                return price
                 
             # If all API approaches fail, try to use Claude to get the price
             if self.analyzer:
                 try:
-                    price_prompt = f"What is the current stock price of {self.ticker}? Please respond with only the numeric value (e.g., 123.45)."
-                    price_str = self.analyzer._get_ai_response(price_prompt)
+                    # Use the cached_api_call method if available
+                    if hasattr(self.analyzer, '_cached_api_call'):
+                        price_prompt = f"What is the current stock price of {self.ticker}? Please respond with only the numeric value (e.g., 123.45)."
+                        price_str = self.analyzer._cached_api_call("get_current_price", price_prompt)
+                    else:
+                        price_prompt = f"What is the current stock price of {self.ticker}? Please respond with only the numeric value (e.g., 123.45)."
+                        price_str = self.analyzer._get_ai_response(price_prompt)
+                        
                     # Extract just the number from the response
                     import re
                     price_match = re.search(r'\d+(\.\d+)?', price_str)
                     if price_match:
-                        return float(price_match.group(0))
+                        price = float(price_match.group(0))
+                        # Cache the price if possible
+                        if hasattr(self.analyzer, 'cache'):
+                            self.analyzer.cache[f"price_{self.ticker}"] = (time.time(), price)
+                        return price
                 except Exception as e:
                     print(f"Error getting price from Claude: {e}")
                 
@@ -479,8 +519,20 @@ class PolygonFinancials:
         try:
             # First try to use the StockAnalyzer if available
             if self.analyzer:
+                # Check if we already have cached peers for this ticker
+                cache_key = f"peers_{self.ticker}"
+                if hasattr(self.analyzer, 'cache') and cache_key in self.analyzer.cache:
+                    cached_time, cached_peers = self.analyzer.cache[cache_key]
+                    # Use cached peers if they're less than 24 hours old
+                    if time.time() - cached_time < 86400:  # 24 hours in seconds
+                        return cached_peers
+                
+                # Get peers from the analyzer
                 peers = self.analyzer.get_similar_companies(self.ticker)
                 if peers:
+                    # Cache the peers if possible
+                    if hasattr(self.analyzer, 'cache'):
+                        self.analyzer.cache[cache_key] = (time.time(), peers)
                     return peers
             
             # If no analyzer or it returned no peers, try the API approaches
@@ -541,6 +593,10 @@ class PolygonFinancials:
                 except Exception as e:
                     print(f"Error dynamically importing StockAnalyzer: {e}")
             
+            # Cache the peers if possible
+            if peers and self.analyzer and hasattr(self.analyzer, 'cache'):
+                self.analyzer.cache[cache_key] = (time.time(), peers)
+                
             return peers
         except Exception as e:
             print(f"Error getting industry peers: {e}")
@@ -549,6 +605,15 @@ class PolygonFinancials:
     def get_industry_pe_ratio(self):
         """Calculate the average P/E ratio for the industry peers."""
         try:
+            # Check if we have a cached industry P/E ratio
+            if self.analyzer and hasattr(self.analyzer, 'cache'):
+                cache_key = f"industry_pe_{self.ticker}"
+                if cache_key in self.analyzer.cache:
+                    cached_time, cached_pe = self.analyzer.cache[cache_key]
+                    # Use cached P/E ratio if it's less than 24 hours old
+                    if time.time() - cached_time < 86400:  # 24 hours in seconds
+                        return cached_pe
+            
             peers = self.get_industry_peers()
             if not peers:
                 print(f"No industry peers found for {self.ticker}")
@@ -573,6 +638,11 @@ class PolygonFinancials:
             if pe_ratios:
                 avg_pe = sum(pe_ratios) / len(pe_ratios)
                 print(f"Average industry P/E ratio: {avg_pe}")
+                
+                # Cache the result if possible
+                if self.analyzer and hasattr(self.analyzer, 'cache'):
+                    self.analyzer.cache[f"industry_pe_{self.ticker}"] = (time.time(), avg_pe)
+                    
                 return avg_pe
                 
             # If we couldn't get P/E ratios for peers, try using Claude to get industry P/E
@@ -588,13 +658,25 @@ class PolygonFinancials:
                             industry = company_details['sector']
                     
                     if industry:
-                        industry_pe_prompt = f"What is the current average P/E ratio for the {industry} industry? Please respond with only the numeric value (e.g., 15.7)."
-                        pe_str = self.analyzer._get_ai_response(industry_pe_prompt)
+                        # Use the cached_api_call method if available
+                        if hasattr(self.analyzer, '_cached_api_call'):
+                            industry_pe_prompt = f"What is the current average P/E ratio for the {industry} industry? Please respond with only the numeric value (e.g., 15.7)."
+                            pe_str = self.analyzer._cached_api_call("get_industry_pe_ratio", industry_pe_prompt)
+                        else:
+                            industry_pe_prompt = f"What is the current average P/E ratio for the {industry} industry? Please respond with only the numeric value (e.g., 15.7)."
+                            pe_str = self.analyzer._get_ai_response(industry_pe_prompt)
+                            
                         # Extract just the number from the response
                         import re
                         pe_match = re.search(r'\d+(\.\d+)?', pe_str)
                         if pe_match:
-                            return float(pe_match.group(0))
+                            industry_pe = float(pe_match.group(0))
+                            
+                            # Cache the result if possible
+                            if hasattr(self.analyzer, 'cache'):
+                                self.analyzer.cache[f"industry_pe_{self.ticker}"] = (time.time(), industry_pe)
+                                
+                            return industry_pe
                 except Exception as e:
                     print(f"Error getting industry P/E from Claude: {e}")
             
@@ -786,18 +868,19 @@ class PolygonFinancials:
             }
 
 # Function to use in Flask routes
-def get_financial_data_for_ticker(ticker, analyzer=None):
+def get_financial_data_for_ticker(ticker, api_key=None, analyzer=None):
     """Function to be used in Flask routes to get financial data for a ticker
     
     Args:
         ticker: The stock ticker symbol
+        api_key: Optional API key for Polygon.io
         analyzer: Optional StockAnalyzer instance for getting similar companies
         
     Returns:
         JSON-serializable dictionary with financial data
     """
     try:
-        financials = PolygonFinancials(ticker, analyzer=analyzer)
+        financials = PolygonFinancials(ticker, api_key=api_key, analyzer=analyzer)
         data = financials.get_financial_data_for_ticker()
         return data
     except Exception as e:
